@@ -209,6 +209,26 @@ graph = builder.compile()
 # 🎨 Streamlit UI - Frontend
 st.set_page_config(page_title="📞 Customer Support Query Classifier", layout="wide")
 
+# Sidebar with workflow diagram
+with st.sidebar:
+    st.subheader("Workflow Diagram")
+
+    try:
+        #Generate Mermaid Workflow Diagram
+        mermaid_diagram = graph.get_graph().draw_mermaid_png()
+
+        #Save and Display the Image in the sidebar
+        image_path = "workflow_diagram.png"
+
+        with open(image_path, "wb") as f:
+            f.write(mermaid_diagram)
+        
+        st.image(image_path, caption="Workflow Execution", use_container_width=True)
+    except Exception as e:
+        st.error(f"Unable to generate workflow diagram: {e}")
+        st.info("The workflow still functions correctly even without the visualization.")
+
+
 # Define sample questions by category
 billing_samples = [
     "I was charged twice for my monthly subscription",
