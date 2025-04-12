@@ -10,8 +10,7 @@ from langchain_groq import ChatGroq
 os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
 #Intialize LLM
-llm = ChatGroq(model_name="qwen-2.5-32b")
-
+llm = ChatGroq(model_name="meta-llama/llama-4-scout-17b-16e-instruct")
 #Intialize output parser
 output_parser = StrOutputParser()
 
@@ -343,4 +342,4 @@ if st.button("🔎 Classify Query") or (user_query != "" and user_query != st.se
             st.markdown(f"**Reason:** {state['reason']}")
 
 st.markdown("---")
-st.caption("Powered by **LangGraph Routing Workflow, Groq** 🚀")
+st.caption("Powered by **LangGraph Routing Workflow, Groq and Streamlit** 🚀")
