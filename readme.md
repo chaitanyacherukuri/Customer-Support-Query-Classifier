@@ -17,7 +17,7 @@ An AI-powered customer support query classifier built with Streamlit, LangGraph,
 - **Streamlit**: Powers the interactive web interface
 - **LangChain**: Orchestrates the LLM workflow
 - **LangGraph**: Manages the state graph for routing queries
-- **Groq**: Provides fast LLM inference with Llama 4 Scout (meta-llama/llama-4-scout-17b-16e-instruct)
+- **Groq**: Provides fast LLM inference with Alibaba's Qwen3-32B reasoning model (qwen/qwen3-32b)
 - **Pydantic**: Ensures structured data validation
 
 ## 📋 Prerequisites

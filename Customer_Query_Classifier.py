@@ -10,9 +10,23 @@ from langchain_groq import ChatGroq
 os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
 #Intialize LLM
-llm = ChatGroq(model_name="meta-llama/llama-4-scout-17b-16e-instruct")
+llm = ChatGroq(model_name="qwen/qwen3-32b")
+
 #Intialize output parser
 output_parser = StrOutputParser()
+
+#Helper function to remove thinking tokens from response
+def remove_thinking_tokens(text: str) -> str:
+    """Remove thinking tokens wrapped in <think></think> or similar tags from the response"""
+    import re
+    # Remove content between <think> and </think> tags (case-insensitive, handles multiline)
+    cleaned_text = re.sub(r'<think>.*?</think>', '', text, flags=re.IGNORECASE | re.DOTALL)
+    # Also handle variations like <thinking>, **<think>**, etc.
+    cleaned_text = re.sub(r'\*\*<think>.*?</think>\*\*', '', cleaned_text, flags=re.IGNORECASE | re.DOTALL)
+    cleaned_text = re.sub(r'<thinking>.*?</thinking>', '', cleaned_text, flags=re.IGNORECASE | re.DOTALL)
+    # Remove any extra whitespace that might be left
+    cleaned_text = re.sub(r'\n\s*\n', '\n\n', cleaned_text)
+    return cleaned_text
 
 #Schema for structured output to use as routing logic
 class CustomerQueryRouter(BaseModel):
@@ -92,7 +106,7 @@ def billing(state: State):
                 - If you need more information, ask a specific question
                 - Mention the billing department's availability (Mon-Fri, 9am-6pm)
                 - Include an offer to help with anything else
-                
+
                 Your goal is to make the customer feel their billing issue will be resolved quickly."""
             ),
             HumanMessage(
@@ -101,7 +115,9 @@ def billing(state: State):
         ]
     )
 
-    return {"response": output_parser.invoke(response)}
+    raw_response = output_parser.invoke(response)
+    cleaned_response = remove_thinking_tokens(raw_response)
+    return {"response": cleaned_response}
 
 #Node to handle the tech support department
 def techsupport(state: State):
@@ -128,7 +144,9 @@ def techsupport(state: State):
         ]
     )
 
-    return {"response": output_parser.invoke(response)}
+    raw_response = output_parser.invoke(response)
+    cleaned_response = remove_thinking_tokens(raw_response)
+    return {"response": cleaned_response}
 
 #Node to handle the sales department
 def sales(state: State):
@@ -155,7 +173,9 @@ def sales(state: State):
         ]
     )
 
-    return {"response": output_parser.invoke(response)}
+    raw_response = output_parser.invoke(response)
+    cleaned_response = remove_thinking_tokens(raw_response)
+    return {"response": cleaned_response}
 
 #Node to handle unknown department classification
 def unknown(state: State):
@@ -172,7 +192,7 @@ def unknown(state: State):
                 - Acknowledge their message in a way that shows you've read it
                 - Ask 1-2 specific clarifying questions to better understand their needs
                 - Assure them you'll connect them with the right specialist once you understand their request better
-                
+
                 Make your response warm and helpful, as if you're having a real conversation rather than sending an automated message."""
             ),
             HumanMessage(
@@ -181,7 +201,9 @@ def unknown(state: State):
         ]
     )
 
-    return {"response": output_parser.invoke(response)}
+    raw_response = output_parser.invoke(response)
+    cleaned_response = remove_thinking_tokens(raw_response)
+    return {"response": cleaned_response}
 
 #State graph to define the workflow
 builder = StateGraph(State)
@@ -296,13 +318,13 @@ st.write("This system classifies customer queries into **Billing, Tech Support, 
 # 📍 User input field - show the selected sample or allow manual input
 user_query = st.text_area("📝 Enter your customer query:", value=st.session_state.user_query, height=100)
 
-# Clear button
-col1, col2 = st.columns([1, 5])
-with col1:
-    if st.button("🧹 Clear"):
-        st.session_state.user_query = ""
-        user_query = ""
-        st.experimental_rerun()
+# # Clear button
+# col1, col2 = st.columns([1, 5])
+# with col1:
+#     if st.button("🧹 Clear"):
+#         st.session_state.user_query = ""
+#         user_query = ""
+#         st.experimental_rerun()
 
 # 🔎 Query Classification Button
 if st.button("🔎 Classify Query") or (user_query != "" and user_query != st.session_state.get('last_processed_query', "")):
@@ -321,7 +343,7 @@ if st.button("🔎 Classify Query") or (user_query != "" and user_query != st.se
         
         with response_col:
             st.subheader("💬 Response:")
-            st.markdown(f"**{state['response']}**")
+            st.markdown(state['response'])
         
         with info_col:
             st.subheader("🏷️ Classification:")
